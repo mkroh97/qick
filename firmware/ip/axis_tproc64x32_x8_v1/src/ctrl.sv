@@ -305,7 +305,9 @@ module ctrl
 
 		// Wait handshake.
 		waitt		,
-		waitt_ack
+		waitt_ack   ,
+		//tagmatch
+		tagmatch
     );
 
 // Ports.
@@ -348,6 +350,7 @@ output			t_sync_en;
 
 input			waitt;
 output			waitt_ack;
+input           tagmatch;
 
 // States.
 typedef enum	{	INIT_ST		,
@@ -474,6 +477,11 @@ always @(posedge clk) begin
 				state <= DECODE_ST;
 
 			DECODE_ST:
+				// tagmatch check and refetch
+				if (!tagmatch)
+					state <= FETCH_ST
+
+				else
 				// pushi
 				if ( opcode == 8'b00010000 )
 					state <= PUSHI0_ST;

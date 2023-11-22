@@ -79,7 +79,9 @@ module tproc64x32_x8
 
 	// Registers.
 	START_SRC_REG 	,
-	START_REG
+	START_REG       
+
+	// TAGMATCH for inst
 );
 
 // Parameters.
@@ -150,6 +152,7 @@ input			m7_axis_tready;
 
 input			START_SRC_REG;
 input			START_REG;
+
 
 // Number of channels.
 localparam NCH 	= 8;
@@ -392,11 +395,16 @@ ctrl
 
 		// Wait handshake.
 		.waitt			(waitt_mux		),
-		.waitt_ack		(waitt_ack_mux	)
+		.waitt_ack		(waitt_ack_mux	),
+
+		//tagmatch
+		.tagmatch       (tproc_tagmatch ),
+		.qaddtaginit    (tproc_qaddtaginit),
+		.IQaddtag       (tproc_IQaddtag)
     );
 
 // Muxed start.
-assign start_i = (START_SRC_REG_resync == 1)? start_input_resync : START_REG_resync;
+assign start_i = (START_SRC_REG_resync == 1 )? start_input_resync : START_REG_resync;
 
 // Instruction fields.
 assign opcode_i		= ir_r[63:56];
@@ -728,6 +736,18 @@ s_axis_read
 		// Output data.
 		.dout			(din3_i			)
     );
+
+// Check address tags
+// currently all Qick instance consume from queue which is not efficient need to move tagmatch outside of axistproc
+TagMatch
+	u_TagMatch
+	(
+		.tagmatch    (tproc_tagmatch    ),
+		.clk         (clk               ),
+		.rstn        (rstn              ),
+		.qaddtaginit (tproc_qaddtaginit ),
+		.IQaddtag    (tproc_IQaddtag    )
+	);
 
 // Data input mux.
 assign din_mux	=	(channel_i == 0)?	din0_i	:
